@@ -91,7 +91,7 @@ private:
   Rewriter TheRewriter;
 };
 
-} // namespace
+}
 
 static FrontendPluginRegistry::Add<RenameAction>
     X("rename-vars", "Rename variables with proper prefixes");
