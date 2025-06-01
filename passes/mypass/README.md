@@ -1,8 +1,8 @@
 # InstructionCounterPass
 
-Проход, который считает число инструкций во всех блоках в IR.
+Проход, который оборачивает циклы внутри функции в вызовы loop_start() и loop_end()
 
-## Сборка
+## Сборка Pass
 
 ```sh
 cmake -S src -B build
@@ -11,14 +11,29 @@ cmake --build build --config Release --parallel 4
 
 ## Пример использования
 
-### Дампим ll
+### Собираем pass-plugin
 
 ```sh
-clang -emit-llvm -S tests/test1/test.cpp -o tests/test1/test.ll   
+cmake -S src -B build
+cmake --build build --config Release --parallel 4
 ```
 
-### Проходим opt'ом с собраным пассом
+### Собираем хуки для функций
 
 ```sh
-opt -load-pass-plugin ./build/libCountInstructionsPass.so -passes=count-inst -disable-output tests/test1/test.ll 
+clang++ -c ./example/wrap_funcs.cpp -o ./example/wrap_funcs.o
+```
+
+### Дампим IR, делаем проход opt и линкуем в исполняемый файл
+
+```sh
+clang++ -O0 -emit-llvm -S example/example.cpp -o example/example.ll
+opt -load-pass-plugin build/LoopWrapperPass.so -passes=loop-wrapper -S example/example.ll -o example/example_opt.ll 
+clang++ example/example_opt.ll example/wrap_funcs.o -o example/example.a
+```
+
+### Проверяем работоспособность
+
+```sh
+./example/example.a
 ```
